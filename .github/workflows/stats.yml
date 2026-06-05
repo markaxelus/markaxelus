@@ -2,40 +2,34 @@ name: Generate GitHub Readme Stats
 
 on:
   schedule:
-    - cron: '0 0 * * *'  # Runs automatically every day at midnight
-  workflow_dispatch:     # Allows you to trigger it manually
+    - cron: '0 0 * * *'  # Runs every day at midnight
+  workflow_dispatch:     # Allows manual triggering
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write    # Grants necessary access permissions to fix exit code 128
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      # STEP 1: Generates your general stats card
-      - name: Generate Base Stats Card
-        uses: stats-organization/github-readme-stats-action@v1
-        with:
-          token: ${{ secrets.GH_TOKEN }}
-          card: "stats"
-          path: "./generated-stats/github-readme-stats.svg"
-          options: "theme=radical&show_icons=true"
-
-      # STEP 2: Generates your fire streak card
+      # STEP 1: Generates the custom fire streak card
       - name: Generate Streak Stats Card
-        uses: stats-organization/github-readme-stats-action@v1
+        uses: be-next/github-streak-stats-action@v1
         with:
+          username: ${{ github.repository_owner }}
           token: ${{ secrets.GH_TOKEN }}
-          card: "streak"  # Tells the action to switch to the streak tracker
-          path: "./generated-stats/github-readme-streak.svg"
-          options: "theme=radical"
+          output-path: "./generated-stats/github-readme-streak.svg"
+          theme: tokyonight  # Uses dark background with cyan text matching your screenshot
+          hide-border: false
 
-      # STEP 3: Saves both local files into your repository
+      # STEP 2: Saves the local file into your repository
       - name: Commit and Push Changes
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
           mkdir -p ./generated-stats
-          git add ./generated-stats
-          git commit -m "Update GitHub Readme Stats and Streaks" || exit 0
+          git add ./generated-stats/github-readme-streak.svg
+          git commit -m "Update GitHub Readme Streak Card" || exit 0
           git push
