@@ -1,0 +1,30 @@
+name: Generate GitHub Readme Stats
+
+on:
+  schedule:
+    # Runs automatically every day at midnight
+    - cron: '0 0 * * *'
+  workflow_dispatch: # Allows you to run it manually anytime
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Generate Stats Card
+        uses: stats-organization/github-readme-stats-action@v1
+        with:
+          gh_token: ${{ secrets.GH_TOKEN }}
+          output_dir: ./generated-stats
+          # You can add customizing options here (like theme, hide, etc.)
+          card_options: "username=YOUR_GITHUB_USERNAME&theme=radical&show_icons=true"
+
+      - name: Commit and Push Changes
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@://github.com"
+          git add ./generated-stats
+          git commit -m "Update GitHub Readme Stats" || exit 0
+          git push
